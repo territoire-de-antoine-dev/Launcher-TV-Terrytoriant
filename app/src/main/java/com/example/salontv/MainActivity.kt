@@ -42,6 +42,52 @@ import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 
 class MainActivity : Activity() {
+        private object WatchNextCols {
+        val CONTENT_URI =
+            TvContractCompat.WatchNextPrograms.CONTENT_URI
+
+        const val _ID = "_id"
+        const val COLUMN_TITLE = "title"
+        const val COLUMN_PACKAGE_NAME = "package_name"
+        const val COLUMN_POSTER_ART_URI = "poster_art_uri"
+        const val COLUMN_THUMBNAIL_URI = "thumbnail_uri"
+        const val COLUMN_INTENT_URI = "intent_uri"
+        const val COLUMN_LAST_PLAYBACK_POSITION_MILLIS =
+            "last_playback_position_millis"
+        const val COLUMN_DURATION_MILLIS = "duration_millis"
+        const val COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS =
+            "last_engagement_time_utc_millis"
+        const val COLUMN_WATCH_NEXT_TYPE = "watch_next_type"
+        const val COLUMN_BROWSABLE = "browsable"
+
+        const val WATCH_NEXT_TYPE_CONTINUE = 0
+    }
+
+    private object ChannelCols {
+        val CONTENT_URI =
+            TvContractCompat.Channels.CONTENT_URI
+
+        const val _ID = "_id"
+        const val COLUMN_DISPLAY_NAME = "display_name"
+        const val COLUMN_PACKAGE_NAME = "package_name"
+        const val COLUMN_TYPE = "type"
+        const val COLUMN_BROWSABLE = "browsable"
+
+        const val TYPE_PREVIEW = "TYPE_PREVIEW"
+    }
+
+    private object PreviewCols {
+        const val _ID = "_id"
+        const val COLUMN_TITLE = "title"
+        const val COLUMN_PACKAGE_NAME = "package_name"
+        const val COLUMN_POSTER_ART_URI = "poster_art_uri"
+        const val COLUMN_THUMBNAIL_URI = "thumbnail_uri"
+        const val COLUMN_INTENT_URI = "intent_uri"
+        const val COLUMN_LAST_PLAYBACK_POSITION_MILLIS =
+            "last_playback_position_millis"
+        const val COLUMN_DURATION_MILLIS = "duration_millis"
+        const val COLUMN_BROWSABLE = "browsable"
+    }
 
     private data class ProgramCard(
         val id: Long,
@@ -706,9 +752,12 @@ class MainActivity : Activity() {
             try {
                 val watchNext =
                     readContinueWatching()
+                    val table = WatchNextCols
+
 
                 val channels =
                     readRecommendationChannels()
+                    val table = ChannelCols
 
                 runOnUiThread {
                     if (isFinishing || isDestroyed) {
@@ -924,8 +973,8 @@ class MainActivity : Activity() {
 
                 val programs =
                     readPreviewPrograms(
-                        channelId,
-                        owner
+                       val table = PreviewCols
+
                     )
 
                 if (programs.isNotEmpty()) {
@@ -1009,8 +1058,8 @@ class MainActivity : Activity() {
         engagementColumn: String? = null
     ): ProgramCard? {
 
-        val table =
-            TvContractCompat.PreviewPrograms
+            val table = PreviewCols
+
 
         val id =
             longValue(table._ID)
