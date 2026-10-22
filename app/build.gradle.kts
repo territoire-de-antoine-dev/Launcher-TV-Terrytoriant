@@ -27,4 +27,10 @@ android {
 dependencies {
     implementation("androidx.tvprovider:tvprovider:1.1.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+    // Lecteur vidéo intégré (TV en direct, flux de la playlist Freebox)
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
+    implementation("androidx.media3:media3-exoplayer-rtsp:1.4.1")
+    implementation("androidx.media3:media3-ui:1.4.1")
 }

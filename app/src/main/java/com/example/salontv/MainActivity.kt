@@ -16,6 +16,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
@@ -193,6 +194,12 @@ class MainActivity : Activity() {
             findViewById(R.id.settingsButton)
         ) {
             showSettings()
+        }
+
+        setupHeaderButton(
+            findViewById(R.id.sleepButton)
+        ) {
+            openScreensaver()
         }
 
         findViewById<View>(R.id.logoBox).apply {
@@ -394,10 +401,15 @@ class MainActivity : Activity() {
         )
 
         val tvButton = mainButton(
-            "Ouvrir la TV",
+            "Accéder à la TV",
             true
         ) {
-            openFreeApp("TV")
+            startActivity(
+                Intent(
+                    this@MainActivity,
+                    LiveTvActivity::class.java
+                )
+            )
         }
 
         hero.addView(
@@ -1684,6 +1696,37 @@ class MainActivity : Activity() {
             }
             .setNegativeButton("Annuler", null)
             .show()
+    }
+
+    /*
+     * Android ne permet pas à une application ordinaire de lancer
+     * directement l'économiseur d'écran. On ouvre donc ses réglages
+     * et on l'indique clairement, sans faire croire qu'il démarre.
+     */
+    private fun openScreensaver() {
+        val attempts = listOf(
+            Intent(Settings.ACTION_DREAM_SETTINGS),
+            Intent(Settings.ACTION_DISPLAY_SETTINGS),
+            Intent(Settings.ACTION_SETTINGS)
+        )
+
+        for (intent in attempts) {
+            try {
+                startActivity(intent)
+                message(
+                    "Lancement direct impossible : réglages de " +
+                        "l'économiseur d'écran ouverts."
+                )
+                return
+            } catch (_: Exception) {
+                // On essaie l'écran de réglages suivant.
+            }
+        }
+
+        message(
+            "L'économiseur d'écran n'est pas accessible " +
+                "sur cet appareil."
+        )
     }
 
     private fun showSettings() {
