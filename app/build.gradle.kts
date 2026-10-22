@@ -24,3 +24,7 @@ android {
         jvmTarget = "17"
     }
 }
+dependencies {
+    implementation("androidx.tvprovider:tvprovider:1.1.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+}
