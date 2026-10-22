@@ -1,214 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0D1420">
+    android:background="#0B1220"
+    android:orientation="vertical"
+    android:paddingLeft="25dp"
+    android:paddingTop="15dp"
+    android:paddingRight="25dp">
 
-    <ScrollView
+    <!-- Navigation qui reste visible en haut -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:fillViewport="true"
-        android:focusable="false">
+        android:layout_height="54dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
         <LinearLayout
+            android:id="@+id/navBackground"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <HorizontalScrollView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:fillViewport="false"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/tabRow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="6dp" />
+            </HorizontalScrollView>
+
+            <TextView
+                android:id="@+id/searchButton"
+                android:layout_width="43dp"
+                android:layout_height="42dp"
+                android:clickable="true"
+                android:contentDescription="Chercher une application"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="⌕"
+                android:textColor="#252A32"
+                android:textSize="25sp" />
+
+            <TextView
+                android:id="@+id/settingsButton"
+                android:layout_width="43dp"
+                android:layout_height="42dp"
+                android:clickable="true"
+                android:contentDescription="Réglages du launcher"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="⚙"
+                android:textColor="#252A32"
+                android:textSize="23sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/clockWeather"
+            android:layout_width="169dp"
+            android:layout_height="49dp"
+            android:clickable="true"
+            android:contentDescription="Heure et météo. Appuyer pour choisir la ville."
+            android:focusable="true"
+            android:gravity="center"
+            android:maxLines="2"
+            android:text="--:--&#10;Choisir une ville"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+
+        <FrameLayout
+            android:id="@+id/logoBox"
+            android:layout_width="52dp"
+            android:layout_height="49dp"
+            android:clickable="true"
+            android:contentDescription="Changer le logo"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/defaultLogo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#E60012"
+                android:gravity="center"
+                android:text="TV"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/customLogo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Logo personnalisé"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Le contenu change selon l'onglet -->
+    <ScrollView
+        android:id="@+id/pageScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="false"
+        android:focusable="false"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/pageContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingLeft="28dp"
-            android:paddingTop="18dp"
-            android:paddingRight="28dp"
-            android:paddingBottom="32dp">
-
-            <!-- Navigation claire en forme de pilule -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:id="@+id/topBar"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <HorizontalScrollView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:fillViewport="false"
-                        android:scrollbars="none">
-
-                        <LinearLayout
-                            android:id="@+id/tabRow"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingLeft="7dp" />
-                    </HorizontalScrollView>
-
-                    <TextView
-                        android:id="@+id/searchButton"
-                        android:layout_width="44dp"
-                        android:layout_height="42dp"
-                        android:clickable="true"
-                        android:contentDescription="Recherche"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:text="⌕"
-                        android:textColor="#252A32"
-                        android:textSize="26sp" />
-
-                    <TextView
-                        android:id="@+id/settingsButton"
-                        android:layout_width="44dp"
-                        android:layout_height="42dp"
-                        android:clickable="true"
-                        android:contentDescription="Paramètres"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:text="⚙"
-                        android:textColor="#252A32"
-                        android:textSize="23sp" />
-                </LinearLayout>
-
-                <!-- Reproduction textuelle pour la maquette, pas un logo officiel -->
-                <TextView
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginLeft="14dp"
-                    android:background="#E60012"
-                    android:gravity="center"
-                    android:text="SFR"
-                    android:textColor="#FFFFFF"
-                    android:textSize="19sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- Bannière principale -->
-            <FrameLayout
-                android:id="@+id/hero"
-                android:layout_width="match_parent"
-                android:layout_height="218dp"
-                android:layout_marginTop="15dp"
-                android:background="@drawable/bg_hero">
-
-                <ImageView
-                    android:id="@+id/heroImage"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:contentDescription="Image de la bannière"
-                    android:scaleType="centerCrop"
-                    android:visibility="gone" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_hero_overlay" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:orientation="vertical"
-                    android:padding="22dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Votre univers TV"
-                        android:textColor="#FFFFFF"
-                        android:textSize="27sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="44dp"
-                        android:layout_marginTop="11dp"
-                        android:background="@drawable/bg_red_button"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:paddingLeft="22dp"
-                        android:paddingRight="22dp"
-                        android:text="Accéder à la TV"
-                        android:textColor="#FFFFFF"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="Programme en cours — exemple"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp" />
-
-                    <ProgressBar
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="250dp"
-                        android:layout_height="5dp"
-                        android:layout_marginTop="6dp"
-                        android:max="100"
-                        android:progress="42"
-                        android:progressBackgroundTint="#77FFFFFF"
-                        android:progressTint="#E60012" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:layout_marginBottom="9dp"
-                android:text="À la une"
-                android:textColor="#FFFFFF"
-                android:textSize="21sp"
-                android:textStyle="bold" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipChildren="false"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/featuredRow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clipChildren="false"
-                    android:orientation="horizontal" />
-            </HorizontalScrollView>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="19dp"
-                android:layout_marginBottom="9dp"
-                android:text="Les services"
-                android:textColor="#FFFFFF"
-                android:textSize="21sp"
-                android:textStyle="bold" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipChildren="false"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/appsRow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clipChildren="false"
-                    android:orientation="horizontal" />
-            </HorizontalScrollView>
-
-        </LinearLayout>
+            android:paddingBottom="30dp" />
     </ScrollView>
-</FrameLayout>
+</LinearLayout>
