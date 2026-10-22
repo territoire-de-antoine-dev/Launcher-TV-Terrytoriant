@@ -330,12 +330,41 @@ class MainActivity : Activity() {
         when (name) {
             "Pour vous" -> renderHome()
 
-            "Guide TV" -> renderFreeSection(
-                "Guide TV",
-                "Le guide des programmes Free se trouve " +
-                    "dans l'application Free TV. Ouvre-la puis " +
-                    "sélectionne son guide."
-            )
+            "Guide TV" -> {
+                renderFreeSection(
+                    "Guide TV",
+                    "Le guide des programmes Free se trouve " +
+                        "dans l'application Free TV. Ouvre-la puis " +
+                        "sélectionne son guide."
+                )
+
+                sectionTitle("TV en direct")
+
+                paragraph(
+                    "Le lecteur intégré affiche la liste des " +
+                        "chaînes de ta Freebox, sans grille de " +
+                        "programmes. Certaines chaînes peuvent ne " +
+                        "pas être lisibles."
+                )
+
+                page.addView(
+                    mainButton(
+                        "Regarder la TV en direct",
+                        false
+                    ) {
+                        startActivity(
+                            Intent(
+                                this@MainActivity,
+                                LiveTvActivity::class.java
+                            )
+                        )
+                    },
+                    LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        dp(48)
+                    )
+                )
+            }
 
             "Replay" -> renderReplay()
             "Applis" -> renderApplications()
