@@ -42,51 +42,55 @@ import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 
 class MainActivity : Activity() {
-        private object WatchNextCols {
+
+    /*
+     * Plusieurs colonnes Android TV sont héritées d'interfaces Java.
+     * Les écrire ici par leur nom évite les erreurs Kotlin
+     * « Unresolved reference » sur table.COLUMN_...
+     */
+    private object WatchNextCols {
         val CONTENT_URI =
             TvContractCompat.WatchNextPrograms.CONTENT_URI
 
-        const val _ID = "_id"
-        const val COLUMN_TITLE = "title"
-        const val COLUMN_PACKAGE_NAME = "package_name"
-        const val COLUMN_POSTER_ART_URI = "poster_art_uri"
-        const val COLUMN_THUMBNAIL_URI = "thumbnail_uri"
-        const val COLUMN_INTENT_URI = "intent_uri"
-        const val COLUMN_LAST_PLAYBACK_POSITION_MILLIS =
+        const val ID = "_id"
+        const val TITLE = "title"
+        const val PACKAGE_NAME = "package_name"
+        const val POSTER_ART_URI = "poster_art_uri"
+        const val THUMBNAIL_URI = "thumbnail_uri"
+        const val INTENT_URI = "intent_uri"
+        const val LAST_PLAYBACK_POSITION =
             "last_playback_position_millis"
-        const val COLUMN_DURATION_MILLIS = "duration_millis"
-        const val COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS =
+        const val DURATION = "duration_millis"
+        const val LAST_ENGAGEMENT =
             "last_engagement_time_utc_millis"
-        const val COLUMN_WATCH_NEXT_TYPE = "watch_next_type"
-        const val COLUMN_BROWSABLE = "browsable"
-
-        const val WATCH_NEXT_TYPE_CONTINUE = 0
+        const val WATCH_NEXT_TYPE = "watch_next_type"
+        const val BROWSABLE = "browsable"
+        const val TYPE_CONTINUE = 0
     }
 
     private object ChannelCols {
         val CONTENT_URI =
             TvContractCompat.Channels.CONTENT_URI
 
-        const val _ID = "_id"
-        const val COLUMN_DISPLAY_NAME = "display_name"
-        const val COLUMN_PACKAGE_NAME = "package_name"
-        const val COLUMN_TYPE = "type"
-        const val COLUMN_BROWSABLE = "browsable"
-
+        const val ID = "_id"
+        const val DISPLAY_NAME = "display_name"
+        const val PACKAGE_NAME = "package_name"
+        const val TYPE = "type"
+        const val BROWSABLE = "browsable"
         const val TYPE_PREVIEW = "TYPE_PREVIEW"
     }
 
     private object PreviewCols {
-        const val _ID = "_id"
-        const val COLUMN_TITLE = "title"
-        const val COLUMN_PACKAGE_NAME = "package_name"
-        const val COLUMN_POSTER_ART_URI = "poster_art_uri"
-        const val COLUMN_THUMBNAIL_URI = "thumbnail_uri"
-        const val COLUMN_INTENT_URI = "intent_uri"
-        const val COLUMN_LAST_PLAYBACK_POSITION_MILLIS =
+        const val ID = "_id"
+        const val TITLE = "title"
+        const val PACKAGE_NAME = "package_name"
+        const val POSTER_ART_URI = "poster_art_uri"
+        const val THUMBNAIL_URI = "thumbnail_uri"
+        const val INTENT_URI = "intent_uri"
+        const val LAST_PLAYBACK_POSITION =
             "last_playback_position_millis"
-        const val COLUMN_DURATION_MILLIS = "duration_millis"
-        const val COLUMN_BROWSABLE = "browsable"
+        const val DURATION = "duration_millis"
+        const val BROWSABLE = "browsable"
     }
 
     private data class ProgramCard(
@@ -102,7 +106,6 @@ class MainActivity : Activity() {
         val progressPercent: Int
             get() {
                 if (durationMillis <= 0L) return 0
-
                 return (
                     positionMillis.coerceIn(0L, durationMillis) *
                         100L / durationMillis
@@ -149,7 +152,8 @@ class MainActivity : Activity() {
         "Chargement des recommandations Android TV…"
 
     private var continueWatching: List<ProgramCard> = emptyList()
-    private var recommendationRows: List<RecommendationRow> = emptyList()
+    private var recommendationRows: List<RecommendationRow> =
+        emptyList()
 
     private val clockTask = object : Runnable {
         override fun run() {
@@ -256,16 +260,8 @@ class MainActivity : Activity() {
                 text = label
                 textSize = 14f
                 gravity = Gravity.CENTER
-
-                setPadding(
-                    dp(13),
-                    0,
-                    dp(13),
-                    0
-                )
-
+                setPadding(dp(13), 0, dp(13), 0)
                 setTextColor(0xFF27303B.toInt())
-
                 isFocusable = true
                 isClickable = true
                 contentDescription = name
@@ -301,28 +297,21 @@ class MainActivity : Activity() {
         button: TextView,
         action: () -> Unit
     ) {
-        button.background =
-            navigationBackground(false)
+        button.background = navigationBackground(false)
 
         button.setOnFocusChangeListener { view, focused ->
             (view as TextView).setTextColor(
-                if (focused) {
-                    Color.WHITE
-                } else {
-                    0xFF27303B.toInt()
-                }
+                if (focused) Color.WHITE
+                else 0xFF27303B.toInt()
             )
         }
 
-        button.setOnClickListener {
-            action()
-        }
+        button.setOnClickListener { action() }
     }
 
     private fun renderPage(name: String) {
         currentPage = name
         page.removeAllViews()
-
         firstContentButton = null
         lastRowButton = null
 
@@ -342,11 +331,8 @@ class MainActivity : Activity() {
             )
 
             "Replay" -> renderReplay()
-
             "Applis" -> renderApplications()
-
             "VOD" -> renderVod()
-
             else -> renderHome()
         }
 
@@ -378,14 +364,7 @@ class MainActivity : Activity() {
         val hero = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
-
-            setPadding(
-                dp(25),
-                dp(13),
-                dp(25),
-                dp(13)
-            )
-
+            setPadding(dp(25), dp(13), dp(25), dp(13))
             background = getDrawable(R.drawable.bg_hero)
         }
 
@@ -400,11 +379,7 @@ class MainActivity : Activity() {
         )
 
         hero.addView(
-            label(
-                "Votre espace TV",
-                27f,
-                true
-            )
+            label("Votre espace TV", 27f, true)
         )
 
         hero.addView(
@@ -436,9 +411,6 @@ class MainActivity : Activity() {
         )
 
         registerFirst(tvButton)
-
-        // Les cartes viennent du fournisseur Android TV.
-        // Aucune affiche fictive n'est ajoutée ici.
         addRecommendationSections()
 
         sectionTitle("À la une")
@@ -507,19 +479,14 @@ class MainActivity : Activity() {
         }
 
         recommendationRows.forEach { row ->
-            addProgramRow(
-                row.title,
-                row.cards
-            )
+            addProgramRow(row.title, row.cards)
         }
 
         if (
             continueWatching.isEmpty() &&
             recommendationRows.isEmpty()
         ) {
-            sectionTitle(
-                "Recommandations Android TV"
-            )
+            sectionTitle("Recommandations Android TV")
             paragraph(recommendationsStatus)
         }
     }
@@ -539,13 +506,7 @@ class MainActivity : Activity() {
             val tile = LinearLayout(this).apply {
                 id = View.generateViewId()
                 orientation = LinearLayout.VERTICAL
-
-                setPadding(
-                    dp(7),
-                    dp(7),
-                    dp(7),
-                    dp(8)
-                )
+                setPadding(dp(7), dp(7), dp(7), dp(8))
 
                 background = cardBackground(
                     (card.id % 5L).toInt()
@@ -591,15 +552,10 @@ class MainActivity : Activity() {
             )
 
             tile.addView(
-                label(
-                    card.title,
-                    14f,
-                    true
-                ).apply {
+                label(card.title, 14f, true).apply {
                     maxLines = 2
                     ellipsize =
                         TextUtils.TruncateAt.END
-
                     isFocusable = false
                 },
                 LinearLayout.LayoutParams(
@@ -611,14 +567,13 @@ class MainActivity : Activity() {
             )
 
             if (card.progressPercent > 0) {
-                val progress = ProgressBar(
+                val progressBar = ProgressBar(
                     this,
                     null,
                     android.R.attr.progressBarStyleHorizontal
                 ).apply {
                     max = 100
-                    this.progress =
-                        card.progressPercent
+                    progress = card.progressPercent
 
                     progressTintList =
                         android.content.res.ColorStateList
@@ -628,7 +583,7 @@ class MainActivity : Activity() {
                 }
 
                 tile.addView(
-                    progress,
+                    progressBar,
                     LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         dp(5)
@@ -675,8 +630,6 @@ class MainActivity : Activity() {
         }
 
         try {
-            // parseUri() lit l'Intent enregistré par l'application.
-            // toUri() ferait l'opération inverse.
             val intent = Intent.parseUri(
                 storedUri,
                 Intent.URI_INTENT_SCHEME
@@ -690,15 +643,12 @@ class MainActivity : Activity() {
                 explicitPackage != card.ownerPackage
             ) {
                 throw SecurityException(
-                    "L'application cible ne correspond " +
-                        "pas à la source."
+                    "Application cible différente " +
+                        "de la source."
                 )
             }
 
             intent.setPackage(card.ownerPackage)
-
-            // Ne pas fabriquer d'Intent de navigateur.
-            // Seul le lien publié par l'application est utilisé.
             startActivity(intent)
 
         } catch (_: Exception) {
@@ -752,12 +702,9 @@ class MainActivity : Activity() {
             try {
                 val watchNext =
                     readContinueWatching()
-                    val table = WatchNextCols
-
 
                 val channels =
                     readRecommendationChannels()
-                    val table = ChannelCols
 
                 runOnUiThread {
                     if (isFinishing || isDestroyed) {
@@ -845,30 +792,25 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun readContinueWatching():
-        List<ProgramCard> {
-
-        val table =
-            TvContractCompat.WatchNextPrograms
-
+    private fun readContinueWatching(): List<ProgramCard> {
         val projection = arrayOf(
-            table._ID,
-            table.COLUMN_TITLE,
-            table.COLUMN_PACKAGE_NAME,
-            table.COLUMN_POSTER_ART_URI,
-            table.COLUMN_THUMBNAIL_URI,
-            table.COLUMN_INTENT_URI,
-            table.COLUMN_LAST_PLAYBACK_POSITION_MILLIS,
-            table.COLUMN_DURATION_MILLIS,
-            table.COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS,
-            table.COLUMN_WATCH_NEXT_TYPE,
-            table.COLUMN_BROWSABLE
+            WatchNextCols.ID,
+            WatchNextCols.TITLE,
+            WatchNextCols.PACKAGE_NAME,
+            WatchNextCols.POSTER_ART_URI,
+            WatchNextCols.THUMBNAIL_URI,
+            WatchNextCols.INTENT_URI,
+            WatchNextCols.LAST_PLAYBACK_POSITION,
+            WatchNextCols.DURATION,
+            WatchNextCols.LAST_ENGAGEMENT,
+            WatchNextCols.WATCH_NEXT_TYPE,
+            WatchNextCols.BROWSABLE
         )
 
         val result = mutableListOf<ProgramCard>()
 
         contentResolver.query(
-            table.CONTENT_URI,
+            WatchNextCols.CONTENT_URI,
             projection,
             null,
             null,
@@ -880,24 +822,22 @@ class MainActivity : Activity() {
             ) {
                 if (
                     cursor.intValue(
-                        table.COLUMN_WATCH_NEXT_TYPE
-                    ) !=
-                    table.WATCH_NEXT_TYPE_CONTINUE
+                        WatchNextCols.WATCH_NEXT_TYPE
+                    ) != WatchNextCols.TYPE_CONTINUE
                 ) {
                     continue
                 }
 
                 if (
                     cursor.intValue(
-                        table.COLUMN_BROWSABLE
+                        WatchNextCols.BROWSABLE
                     ) == 0
                 ) {
                     continue
                 }
 
                 cursor.readProgramCard(
-                    table
-                        .COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS
+                    WatchNextCols.LAST_ENGAGEMENT
                 )?.let {
                     result.add(it)
                 }
@@ -912,22 +852,18 @@ class MainActivity : Activity() {
     private fun readRecommendationChannels():
         List<RecommendationRow> {
 
-        val table =
-            TvContractCompat.Channels
-
         val projection = arrayOf(
-            table._ID,
-            table.COLUMN_DISPLAY_NAME,
-            table.COLUMN_PACKAGE_NAME,
-            table.COLUMN_TYPE,
-            table.COLUMN_BROWSABLE
+            ChannelCols.ID,
+            ChannelCols.DISPLAY_NAME,
+            ChannelCols.PACKAGE_NAME,
+            ChannelCols.TYPE,
+            ChannelCols.BROWSABLE
         )
 
-        val rows =
-            mutableListOf<RecommendationRow>()
+        val rows = mutableListOf<RecommendationRow>()
 
         contentResolver.query(
-            table.CONTENT_URI,
+            ChannelCols.CONTENT_URI,
             projection,
             null,
             null,
@@ -939,42 +875,43 @@ class MainActivity : Activity() {
             ) {
                 if (
                     cursor.stringValue(
-                        table.COLUMN_TYPE
-                    ) != table.TYPE_PREVIEW
+                        ChannelCols.TYPE
+                    ) != ChannelCols.TYPE_PREVIEW
                 ) {
                     continue
                 }
 
                 if (
                     cursor.intValue(
-                        table.COLUMN_BROWSABLE
+                        ChannelCols.BROWSABLE
                     ) == 0
                 ) {
                     continue
                 }
 
                 val channelId =
-                    cursor.longValue(table._ID)
-                        ?: continue
+                    cursor.longValue(
+                        ChannelCols.ID
+                    ) ?: continue
 
                 val owner =
                     cursor.stringValue(
-                        table.COLUMN_PACKAGE_NAME
+                        ChannelCols.PACKAGE_NAME
                     )?.takeIf {
                         it.isNotBlank()
                     } ?: continue
 
                 val channelName =
                     cursor.stringValue(
-                        table.COLUMN_DISPLAY_NAME
+                        ChannelCols.DISPLAY_NAME
                     )?.takeIf {
                         it.isNotBlank()
                     } ?: owner
 
                 val programs =
                     readPreviewPrograms(
-                       val table = PreviewCols
-
+                        channelId,
+                        owner
                     )
 
                 if (programs.isNotEmpty()) {
@@ -996,19 +933,16 @@ class MainActivity : Activity() {
         owner: String
     ): List<ProgramCard> {
 
-        val table =
-            TvContractCompat.PreviewPrograms
-
         val projection = arrayOf(
-            table._ID,
-            table.COLUMN_TITLE,
-            table.COLUMN_PACKAGE_NAME,
-            table.COLUMN_POSTER_ART_URI,
-            table.COLUMN_THUMBNAIL_URI,
-            table.COLUMN_INTENT_URI,
-            table.COLUMN_LAST_PLAYBACK_POSITION_MILLIS,
-            table.COLUMN_DURATION_MILLIS,
-            table.COLUMN_BROWSABLE
+            PreviewCols.ID,
+            PreviewCols.TITLE,
+            PreviewCols.PACKAGE_NAME,
+            PreviewCols.POSTER_ART_URI,
+            PreviewCols.THUMBNAIL_URI,
+            PreviewCols.INTENT_URI,
+            PreviewCols.LAST_PLAYBACK_POSITION,
+            PreviewCols.DURATION,
+            PreviewCols.BROWSABLE
         )
 
         val uri =
@@ -1017,8 +951,7 @@ class MainActivity : Activity() {
                     channelId
                 )
 
-        val result =
-            mutableListOf<ProgramCard>()
+        val result = mutableListOf<ProgramCard>()
 
         contentResolver.query(
             uri,
@@ -1033,7 +966,7 @@ class MainActivity : Activity() {
             ) {
                 if (
                     cursor.intValue(
-                        table.COLUMN_BROWSABLE
+                        PreviewCols.BROWSABLE
                     ) == 0
                 ) {
                     continue
@@ -1057,35 +990,32 @@ class MainActivity : Activity() {
     private fun Cursor.readProgramCard(
         engagementColumn: String? = null
     ): ProgramCard? {
-
-            val table = PreviewCols
-
-
         val id =
-            longValue(table._ID)
-                ?: return null
+            longValue(
+                PreviewCols.ID
+            ) ?: return null
 
         val title =
             stringValue(
-                table.COLUMN_TITLE
+                PreviewCols.TITLE
             )?.takeIf {
                 it.isNotBlank()
             } ?: return null
 
         val owner =
             stringValue(
-                table.COLUMN_PACKAGE_NAME
+                PreviewCols.PACKAGE_NAME
             )?.takeIf {
                 it.isNotBlank()
             } ?: return null
 
         val image =
             stringValue(
-                table.COLUMN_POSTER_ART_URI
+                PreviewCols.POSTER_ART_URI
             )?.takeIf {
                 it.isNotBlank()
             } ?: stringValue(
-                table.COLUMN_THUMBNAIL_URI
+                PreviewCols.THUMBNAIL_URI
             )
 
         return ProgramCard(
@@ -1094,16 +1024,16 @@ class MainActivity : Activity() {
             ownerPackage = owner,
             artworkUri = image,
             launchUri = stringValue(
-                table.COLUMN_INTENT_URI
+                PreviewCols.INTENT_URI
             ),
             positionMillis =
                 longValue(
-                    table
-                        .COLUMN_LAST_PLAYBACK_POSITION_MILLIS
+                    PreviewCols
+                        .LAST_PLAYBACK_POSITION
                 ) ?: 0L,
             durationMillis =
                 longValue(
-                    table.COLUMN_DURATION_MILLIS
+                    PreviewCols.DURATION
                 ) ?: 0L,
             engagementMillis =
                 engagementColumn?.let {
@@ -1115,8 +1045,7 @@ class MainActivity : Activity() {
     private fun Cursor.stringValue(
         column: String
     ): String? {
-        val index =
-            getColumnIndex(column)
+        val index = getColumnIndex(column)
 
         return if (
             index < 0 ||
@@ -1131,8 +1060,7 @@ class MainActivity : Activity() {
     private fun Cursor.longValue(
         column: String
     ): Long? {
-        val index =
-            getColumnIndex(column)
+        val index = getColumnIndex(column)
 
         return if (
             index < 0 ||
@@ -1147,8 +1075,7 @@ class MainActivity : Activity() {
     private fun Cursor.intValue(
         column: String
     ): Int? {
-        val index =
-            getColumnIndex(column)
+        val index = getColumnIndex(column)
 
         return if (
             index < 0 ||
@@ -1195,9 +1122,7 @@ class MainActivity : Activity() {
         val uri = Uri.parse(rawUri)
 
         val input = when (
-            uri.scheme?.lowercase(
-                Locale.ROOT
-            )
+            uri.scheme?.lowercase(Locale.ROOT)
         ) {
             "content",
             "android.resource" ->
@@ -1209,7 +1134,6 @@ class MainActivity : Activity() {
 
                 connection.connectTimeout = 5000
                 connection.readTimeout = 5000
-
                 connection.getInputStream()
             }
 
@@ -1217,21 +1141,13 @@ class MainActivity : Activity() {
         } ?: return null
 
         val bytes = input.use { stream ->
-            val output =
-                ByteArrayOutputStream()
-
-            val buffer =
-                ByteArray(8192)
-
+            val output = ByteArrayOutputStream()
+            val buffer = ByteArray(8192)
             var total = 0
 
             while (true) {
-                val count =
-                    stream.read(buffer)
-
-                if (count < 0) {
-                    break
-                }
+                val count = stream.read(buffer)
+                if (count < 0) break
 
                 total += count
 
@@ -1241,20 +1157,15 @@ class MainActivity : Activity() {
                     )
                 }
 
-                output.write(
-                    buffer,
-                    0,
-                    count
-                )
+                output.write(buffer, 0, count)
             }
 
             output.toByteArray()
         }
 
-        val bounds =
-            BitmapFactory.Options().apply {
-                inJustDecodeBounds = true
-            }
+        val bounds = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+        }
 
         BitmapFactory.decodeByteArray(
             bytes,
@@ -1269,22 +1180,17 @@ class MainActivity : Activity() {
                 bounds.outHeight
             )
 
-        if (largest <= 0) {
-            return null
-        }
+        if (largest <= 0) return null
 
         var sample = 1
 
-        while (
-            largest / sample > 700
-        ) {
+        while (largest / sample > 700) {
             sample *= 2
         }
 
-        val options =
-            BitmapFactory.Options().apply {
-                inSampleSize = sample
-            }
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = sample
+        }
 
         return BitmapFactory.decodeByteArray(
             bytes,
@@ -1294,12 +1200,9 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun renderCategory(
-        category: String
-    ) {
+    private fun renderCategory(category: String) {
         currentPage = category
         page.removeAllViews()
-
         firstContentButton = null
         lastRowButton = null
 
@@ -1312,41 +1215,34 @@ class MainActivity : Activity() {
 
         sectionTitle(category)
 
-        val description =
-            when (category) {
-                "Nouveautés" ->
-                    "Consulte les programmes publiés " +
-                        "dans les recommandations " +
-                        "Android TV ou ouvre tes " +
-                        "plateformes."
+        val description = when (category) {
+            "Nouveautés" ->
+                "Consulte les programmes publiés dans " +
+                    "les recommandations Android TV ou " +
+                    "ouvre tes plateformes."
 
-                "À découvrir" ->
-                    "Les applications TV disponibles " +
-                        "sur ta box."
+            "À découvrir" ->
+                "Les applications TV disponibles " +
+                    "sur ta box."
 
-                else ->
-                    "Applications susceptibles de " +
-                        "proposer ce type de contenu. " +
-                        "Leur catalogue dépend de " +
-                        "ton abonnement."
-            }
+            else ->
+                "Applications susceptibles de proposer " +
+                    "ce type de contenu. Leur catalogue " +
+                    "dépend de ton abonnement."
+        }
 
         paragraph(description)
 
         val apps = tvApps()
 
         val matching = apps.filter {
-            matchesCategory(
-                it,
-                category
-            )
+            matchesCategory(it, category)
         }
 
         if (matching.isNotEmpty()) {
             addAppRow(
                 matching,
-                "Aucune application " +
-                    "correspondante."
+                "Aucune application correspondante."
             )
         } else {
             paragraph(
@@ -1362,9 +1258,7 @@ class MainActivity : Activity() {
         }
 
         firstContentButton?.nextFocusUpId =
-            tabs.getValue(
-                "Pour vous"
-            ).id
+            tabs.getValue("Pour vous").id
 
         pageScroll.scrollTo(0, 0)
     }
@@ -1404,38 +1298,28 @@ class MainActivity : Activity() {
     private fun renderReplay() {
         renderFreeSection(
             "Replay",
-            "Ouvre Free TV pour accéder à " +
-                "son replay, ou sélectionne " +
-                "une autre application ci-dessous."
+            "Ouvre Free TV pour accéder à son replay, " +
+                "ou sélectionne une autre application " +
+                "ci-dessous."
         )
 
-        sectionTitle(
-            "Autres applications"
-        )
+        sectionTitle("Autres applications")
 
         addAppRow(
             tvApps().filter {
-                matchesCategory(
-                    it,
-                    "Replay"
-                )
+                matchesCategory(it, "Replay")
             },
-            "Aucune autre application de " +
-                "replay détectée."
+            "Aucune autre application de replay détectée."
         )
     }
 
     private fun renderApplications(
         filter: String = ""
     ) {
-        sectionTitle(
-            "Toutes les applis"
-        )
+        sectionTitle("Toutes les applis")
 
         if (filter.isNotEmpty()) {
-            paragraph(
-                "Recherche : $filter"
-            )
+            paragraph("Recherche : $filter")
         } else {
             paragraph(
                 "Sélectionne une application avec " +
@@ -1458,17 +1342,14 @@ class MainActivity : Activity() {
         sectionTitle("VOD")
 
         paragraph(
-            "Ouvre un service installé pour " +
-                "voir son catalogue. Certains " +
-                "contenus nécessitent un abonnement."
+            "Ouvre un service installé pour voir son " +
+                "catalogue. Certains contenus nécessitent " +
+                "un abonnement."
         )
 
         addAppRow(
             tvApps().filter {
-                matchesCategory(
-                    it,
-                    "VOD"
-                )
+                matchesCategory(it, "VOD")
             },
             "Aucune application VOD détectée."
         )
@@ -1479,96 +1360,52 @@ class MainActivity : Activity() {
         category: String
     ): Boolean {
         val name =
-            appName(app).lowercase(
-                Locale.ROOT
-            )
+            appName(app).lowercase(Locale.ROOT)
 
         val cinema = listOf(
-            "netflix",
-            "prime video",
-            "disney",
-            "canal",
-            "max",
-            "paramount",
-            "apple tv",
-            "rakuten",
-            "free tv",
-            "oqee",
-            "pluto",
-            "molotov"
+            "netflix", "prime video", "disney",
+            "canal", "max", "paramount",
+            "apple tv", "rakuten", "free tv",
+            "oqee", "pluto", "molotov"
         )
 
         val documentary = listOf(
-            "arte",
-            "france.tv",
-            "france tv",
-            "canal",
-            "free tv",
-            "oqee",
-            "netflix",
-            "prime video",
-            "disney"
+            "arte", "france.tv", "france tv",
+            "canal", "free tv", "oqee",
+            "netflix", "prime video", "disney"
         )
 
         val youth = listOf(
-            "disney",
-            "gulli",
-            "netflix",
-            "prime video",
-            "canal",
-            "free tv",
-            "oqee",
-            "france.tv",
-            "france tv"
+            "disney", "gulli", "netflix",
+            "prime video", "canal", "free tv",
+            "oqee", "france.tv", "france tv"
         )
 
         val replay = listOf(
-            "free tv",
-            "oqee",
-            "france.tv",
-            "france tv",
-            "arte",
-            "molotov",
-            "mytf1",
-            "tf1+",
-            "m6+"
+            "free tv", "oqee", "france.tv",
+            "france tv", "arte", "molotov",
+            "mytf1", "tf1+", "m6+"
         )
 
-        val keywords =
-            when (category) {
-                "Films et séries",
-                "VOD" -> cinema
-
-                "Documentaires" ->
-                    documentary
-
-                "Jeunesse" ->
-                    youth
-
-                "Replay" ->
-                    replay
-
-                else ->
-                    return true
-            }
+        val keywords = when (category) {
+            "Films et séries", "VOD" -> cinema
+            "Documentaires" -> documentary
+            "Jeunesse" -> youth
+            "Replay" -> replay
+            else -> return true
+        }
 
         return keywords.any {
             name.contains(it)
         }
     }
 
-    private fun tvApps():
-        List<ResolveInfo> {
-
-        val query =
-            Intent(
-                Intent.ACTION_MAIN
-            ).apply {
-                addCategory(
-                    Intent
-                        .CATEGORY_LEANBACK_LAUNCHER
-                )
-            }
+    private fun tvApps(): List<ResolveInfo> {
+        val query = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(
+                Intent.CATEGORY_LEANBACK_LAUNCHER
+            )
+        }
 
         @Suppress("DEPRECATION")
         return packageManager
@@ -1604,78 +1441,59 @@ class MainActivity : Activity() {
             return
         }
 
-        val row =
-            horizontalRow()
-
+        val row = horizontalRow()
         var firstInRow: View? = null
 
-        apps.forEachIndexed {
-                index, app ->
+        apps.forEachIndexed { index, app ->
+            val card = LinearLayout(this).apply {
+                id = View.generateViewId()
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
 
-            val card =
-                LinearLayout(this).apply {
-                    id =
-                        View.generateViewId()
+                setPadding(
+                    dp(8),
+                    dp(7),
+                    dp(8),
+                    dp(7)
+                )
 
-                    orientation =
-                        LinearLayout.VERTICAL
+                background = cardBackground(
+                    index + 4
+                )
 
-                    gravity =
-                        Gravity.CENTER
+                isFocusable = true
+                isClickable = true
 
-                    setPadding(
-                        dp(8),
-                        dp(7),
-                        dp(8),
-                        dp(7)
+                contentDescription =
+                    "Ouvrir ${appName(app)}"
+
+                lastRowButton?.let {
+                    nextFocusUpId = it.id
+                }
+
+                setOnFocusChangeListener { view, focused ->
+                    animateFocus(view, focused)
+                }
+
+                setOnClickListener {
+                    launchApp(app)
+                }
+            }
+
+            val icon = ImageView(this).apply {
+                try {
+                    setImageDrawable(
+                        app.loadIcon(packageManager)
                     )
-
-                    background =
-                        cardBackground(
-                            index + 4
-                        )
-
-                    isFocusable = true
-                    isClickable = true
-
-                    contentDescription =
-                        "Ouvrir ${appName(app)}"
-
-                    lastRowButton?.let {
-                        nextFocusUpId =
-                            it.id
-                    }
-
-                    setOnFocusChangeListener {
-                            view, focused ->
-                        animateFocus(
-                            view,
-                            focused
-                        )
-                    }
-
-                    setOnClickListener {
-                        launchApp(app)
-                    }
+                } catch (_: Exception) {
+                    setImageResource(
+                        android.R.drawable
+                            .sym_def_app_icon
+                    )
                 }
 
-            val icon =
-                ImageView(this).apply {
-                    try {
-                        setImageDrawable(
-                            app.loadIcon(
-                                packageManager
-                            )
-                        )
-                    } catch (_: Exception) {
-                        setImageResource(
-                            android.R.drawable
-                                .sym_def_app_icon
-                        )
-                    }
-
-                    isFocusable = false
-                }
+                isFocusable = false
+            }
 
             card.addView(
                 icon,
@@ -1691,22 +1509,15 @@ class MainActivity : Activity() {
                     13f,
                     false
                 ).apply {
-                    gravity =
-                        Gravity.CENTER
-
+                    gravity = Gravity.CENTER
                     maxLines = 1
-
                     ellipsize =
-                        TextUtils
-                            .TruncateAt.END
-
+                        TextUtils.TruncateAt.END
                     isFocusable = false
                 },
                 LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams
-                        .MATCH_PARENT,
-                    ViewGroup.LayoutParams
-                        .WRAP_CONTENT
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
                 ).apply {
                     topMargin = dp(7)
                 }
@@ -1743,22 +1554,16 @@ class MainActivity : Activity() {
                 null
             )
 
-        val selected =
-            apps.firstOrNull {
-                it.activityInfo.packageName ==
-                    savedPackage
-            } ?: apps.firstOrNull {
-                val name =
-                    appName(it).lowercase(
-                        Locale.ROOT
-                    )
+        val selected = apps.firstOrNull {
+            it.activityInfo.packageName ==
+                savedPackage
+        } ?: apps.firstOrNull {
+            val name =
+                appName(it).lowercase(Locale.ROOT)
 
-                name.contains(
-                    "free tv"
-                ) || name.contains(
-                    "oqee"
-                )
-            }
+            name.contains("free tv") ||
+                name.contains("oqee")
+        }
 
         if (selected != null) {
             launchApp(selected)
@@ -1767,42 +1572,28 @@ class MainActivity : Activity() {
 
         if (apps.isEmpty()) {
             AlertDialog.Builder(this)
-                .setTitle(
-                    "Free TV introuvable"
-                )
+                .setTitle("Free TV introuvable")
                 .setMessage(
-                    "Aucune application TV n'a " +
-                        "été détectée sur " +
-                        "cet appareil."
+                    "Aucune application TV n'a été " +
+                        "détectée sur cet appareil."
                 )
-                .setPositiveButton(
-                    "OK",
-                    null
-                )
+                .setPositiveButton("OK", null)
                 .show()
-
             return
         }
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Choisir l'application " +
-                    "pour $section"
+                "Choisir l'application pour $section"
             )
             .setMessage(
-                "Sélectionne Free TV si elle " +
-                    "apparaît. Ce choix sera " +
-                    "mémorisé."
+                "Sélectionne Free TV si elle apparaît. " +
+                    "Ce choix sera mémorisé."
             )
-            .setPositiveButton(
-                "Choisir"
-            ) { _, _ ->
+            .setPositiveButton("Choisir") { _, _ ->
                 chooseFreeApplication()
             }
-            .setNegativeButton(
-                "Annuler",
-                null
-            )
+            .setNegativeButton("Annuler", null)
             .show()
     }
 
@@ -1816,58 +1607,40 @@ class MainActivity : Activity() {
             return
         }
 
-        val names =
-            apps.map {
-                appName(it)
-            }.toTypedArray()
+        val names = apps.map {
+            appName(it)
+        }.toTypedArray()
 
         AlertDialog.Builder(this)
-            .setTitle(
-                "Mon application TV Free"
-            )
-            .setItems(
-                names
-            ) { _, position ->
-                val selected =
-                    apps[position]
+            .setTitle("Mon application TV Free")
+            .setItems(names) { _, position ->
+                val selected = apps[position]
 
                 preferences.edit()
                     .putString(
                         "free_app_package",
-                        selected.activityInfo
-                            .packageName
+                        selected.activityInfo.packageName
                     )
                     .apply()
 
                 launchApp(selected)
             }
-            .setNegativeButton(
-                "Annuler",
-                null
-            )
+            .setNegativeButton("Annuler", null)
             .show()
     }
 
-    private fun launchApp(
-        app: ResolveInfo
-    ) {
+    private fun launchApp(app: ResolveInfo) {
         try {
-            val intent =
-                packageManager
-                    .getLeanbackLaunchIntentForPackage(
-                        app.activityInfo.packageName
-                    ) ?: Intent(
-                    Intent.ACTION_MAIN
-                ).apply {
+            val intent = packageManager
+                .getLeanbackLaunchIntentForPackage(
+                    app.activityInfo.packageName
+                ) ?: Intent(Intent.ACTION_MAIN).apply {
                     setClassName(
-                        app.activityInfo
-                            .packageName,
+                        app.activityInfo.packageName,
                         app.activityInfo.name
                     )
-
                     addCategory(
-                        Intent
-                            .CATEGORY_LEANBACK_LAUNCHER
+                        Intent.CATEGORY_LEANBACK_LAUNCHER
                     )
                 }
 
@@ -1875,36 +1648,28 @@ class MainActivity : Activity() {
 
         } catch (_: Exception) {
             message(
-                "Impossible d'ouvrir cette " +
-                    "application sur cet appareil."
+                "Impossible d'ouvrir cette application " +
+                    "sur cet appareil."
             )
         }
     }
 
     private fun searchApplications() {
-        val input =
-            EditText(this).apply {
-                hint =
-                    "Nom d'une application"
-
-                isSingleLine = true
-
-                setPadding(
-                    dp(16),
-                    dp(12),
-                    dp(16),
-                    dp(12)
-                )
-            }
+        val input = EditText(this).apply {
+            hint = "Nom d'une application"
+            isSingleLine = true
+            setPadding(
+                dp(16),
+                dp(12),
+                dp(16),
+                dp(12)
+            )
+        }
 
         AlertDialog.Builder(this)
-            .setTitle(
-                "Chercher une application TV"
-            )
+            .setTitle("Chercher une application TV")
             .setView(input)
-            .setPositiveButton(
-                "Chercher"
-            ) { _, _ ->
+            .setPositiveButton("Chercher") { _, _ ->
                 renderPage("Applis")
                 page.removeAllViews()
 
@@ -1912,17 +1677,12 @@ class MainActivity : Activity() {
                 lastRowButton = null
 
                 renderApplications(
-                    input.text.toString()
-                        .trim()
+                    input.text.toString().trim()
                 )
 
-                firstContentButton
-                    ?.requestFocus()
+                firstContentButton?.requestFocus()
             }
-            .setNegativeButton(
-                "Annuler",
-                null
-            )
+            .setNegativeButton("Annuler", null)
             .show()
     }
 
@@ -1936,168 +1696,103 @@ class MainActivity : Activity() {
         )
 
         AlertDialog.Builder(this)
-            .setTitle(
-                "Réglages du launcher"
-            )
-            .setItems(
-                choices
-            ) { _, which ->
+            .setTitle("Réglages du launcher")
+            .setItems(choices) { _, which ->
                 when (which) {
-                    0 ->
-                        chooseCity()
-
-                    1 ->
-                        chooseLogo()
-
-                    2 ->
-                        chooseFreeApplication()
+                    0 -> chooseCity()
+                    1 -> chooseLogo()
+                    2 -> chooseFreeApplication()
 
                     3 -> {
                         preferences.edit()
-                            .remove(
-                                "logo_uri"
-                            )
+                            .remove("logo_uri")
                             .apply()
-
                         restoreLogo()
                     }
 
-                    4 ->
-                        AlertDialog.Builder(
-                            this
+                    4 -> AlertDialog.Builder(this)
+                        .setTitle("Météo")
+                        .setMessage(
+                            "Prévisions et recherche de " +
+                                "villes : Open-Meteo. " +
+                                "La ville est choisie " +
+                                "manuellement."
                         )
-                            .setTitle(
-                                "Météo"
-                            )
-                            .setMessage(
-                                "Prévisions et " +
-                                    "recherche de " +
-                                    "villes : " +
-                                    "Open-Meteo. " +
-                                    "La ville est " +
-                                    "choisie " +
-                                    "manuellement."
-                            )
-                            .setPositiveButton(
-                                "OK",
-                                null
-                            )
-                            .show()
+                        .setPositiveButton("OK", null)
+                        .show()
                 }
             }
-            .setNegativeButton(
-                "Fermer",
-                null
-            )
+            .setNegativeButton("Fermer", null)
             .show()
     }
 
     private fun chooseCity() {
-        val input =
-            EditText(this).apply {
-                hint =
-                    "Exemple : Paris"
+        val input = EditText(this).apply {
+            hint = "Exemple : Paris"
+            isSingleLine = true
 
-                isSingleLine = true
-
-                setPadding(
-                    dp(16),
-                    dp(12),
-                    dp(16),
-                    dp(12)
-                )
-            }
+            setPadding(
+                dp(16),
+                dp(12),
+                dp(16),
+                dp(12)
+            )
+        }
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Choisir une ville " +
-                    "pour la météo"
+                "Choisir une ville pour la météo"
             )
             .setView(input)
-            .setPositiveButton(
-                "Rechercher"
-            ) { _, _ ->
+            .setPositiveButton("Rechercher") { _, _ ->
                 val city =
-                    input.text.toString()
-                        .trim()
+                    input.text.toString().trim()
 
                 if (city.length < 2) {
                     message(
-                        "Entre au moins " +
-                            "deux lettres."
+                        "Entre au moins deux lettres."
                     )
                 } else {
                     findCities(city)
                 }
             }
-            .setNegativeButton(
-                "Annuler",
-                null
-            )
+            .setNegativeButton("Annuler", null)
             .show()
     }
 
-    private fun findCities(
-        search: String
-    ) {
-        weatherLine =
-            "Recherche en cours…"
-
+    private fun findCities(search: String) {
+        weatherLine = "Recherche en cours…"
         updateClock()
 
         worker.execute {
             try {
                 val encoded =
-                    URLEncoder.encode(
-                        search,
-                        "UTF-8"
-                    )
+                    URLEncoder.encode(search, "UTF-8")
 
-                val data =
-                    getJson(
-                        "https://geocoding-api." +
-                            "open-meteo.com/v1/search" +
-                            "?name=$encoded&count=5" +
-                            "&language=fr"
-                    )
+                val data = getJson(
+                    "https://geocoding-api.open-meteo.com/" +
+                        "v1/search?name=$encoded&count=5" +
+                        "&language=fr"
+                )
 
                 val results =
-                    data.optJSONArray(
-                        "results"
-                    )
+                    data.optJSONArray("results")
 
                 val cities =
-                    mutableListOf<
-                        CityResult
-                        >()
+                    mutableListOf<CityResult>()
 
                 if (results != null) {
-                    for (
-                        index in
-                        0 until results.length()
-                    ) {
+                    for (index in 0 until results.length()) {
                         val item =
-                            results.getJSONObject(
-                                index
-                            )
+                            results.getJSONObject(index)
 
                         cities.add(
                             CityResult(
-                                item.optString(
-                                    "name"
-                                ),
-                                item.optString(
-                                    "admin1"
-                                ),
-                                item.optString(
-                                    "country"
-                                ),
-                                item.getDouble(
-                                    "latitude"
-                                ),
-                                item.getDouble(
-                                    "longitude"
-                                )
+                                item.optString("name"),
+                                item.optString("admin1"),
+                                item.optString("country"),
+                                item.getDouble("latitude"),
+                                item.getDouble("longitude")
                             )
                         )
                     }
@@ -2107,12 +1802,9 @@ class MainActivity : Activity() {
                     if (cities.isEmpty()) {
                         weatherLine =
                             "Ville introuvable"
-
                         updateClock()
                     } else {
-                        showCityResults(
-                            cities
-                        )
+                        showCityResults(cities)
                     }
                 }
 
@@ -2120,7 +1812,6 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     weatherLine =
                         "Météo indisponible"
-
                     updateClock()
                 }
             }
@@ -2130,30 +1821,20 @@ class MainActivity : Activity() {
     private fun showCityResults(
         cities: List<CityResult>
     ) {
-        val names =
-            cities.map { city ->
-                listOf(
-                    city.name,
-                    city.region,
-                    city.country
-                )
-                    .filter {
-                        it.isNotBlank()
-                    }
-                    .joinToString(
-                        ", "
-                    )
-            }.toTypedArray()
+        val names = cities.map { city ->
+            listOf(
+                city.name,
+                city.region,
+                city.country
+            )
+                .filter { it.isNotBlank() }
+                .joinToString(", ")
+        }.toTypedArray()
 
         AlertDialog.Builder(this)
-            .setTitle(
-                "Sélectionner votre ville"
-            )
-            .setItems(
-                names
-            ) { _, position ->
-                val chosen =
-                    cities[position]
+            .setTitle("Sélectionner votre ville")
+            .setItems(names) { _, position ->
+                val chosen = cities[position]
 
                 preferences.edit()
                     .putString(
@@ -2162,24 +1843,18 @@ class MainActivity : Activity() {
                     )
                     .putString(
                         "city_lat",
-                        chosen.latitude
-                            .toString()
+                        chosen.latitude.toString()
                     )
                     .putString(
                         "city_lon",
-                        chosen.longitude
-                            .toString()
+                        chosen.longitude.toString()
                     )
                     .apply()
 
                 lastWeatherUpdate = 0L
-
                 updateWeather()
             }
-            .setNegativeButton(
-                "Annuler",
-                null
-            )
+            .setNegativeButton("Annuler", null)
             .show()
     }
 
@@ -2214,29 +1889,22 @@ class MainActivity : Activity() {
         lastWeatherUpdate =
             System.currentTimeMillis()
 
-        weatherLine =
-            "$city · météo…"
-
+        weatherLine = "$city · météo…"
         updateClock()
 
         worker.execute {
             try {
-                val result =
-                    getJson(
-                        "https://api.open-meteo.com/" +
-                            "v1/forecast" +
-                            "?latitude=$latitude" +
-                            "&longitude=$longitude" +
-                            "&current=" +
-                            "temperature_2m," +
-                            "weather_code" +
-                            "&timezone=auto"
-                    )
+                val result = getJson(
+                    "https://api.open-meteo.com/" +
+                        "v1/forecast" +
+                        "?latitude=$latitude" +
+                        "&longitude=$longitude" +
+                        "&current=temperature_2m," +
+                        "weather_code&timezone=auto"
+                )
 
                 val current =
-                    result.getJSONObject(
-                        "current"
-                    )
+                    result.getJSONObject("current")
 
                 val temperature =
                     current.getDouble(
@@ -2244,35 +1912,22 @@ class MainActivity : Activity() {
                     ).roundToInt()
 
                 val code =
-                    current.getInt(
-                        "weather_code"
-                    )
+                    current.getInt("weather_code")
 
-                val condition =
-                    when (code) {
-                        0 -> "☀"
-
-                        1, 2 -> "⛅"
-
-                        3 -> "☁"
-
-                        45, 48 -> "≋"
-
-                        in 51..67,
-                        in 80..82 -> "☂"
-
-                        in 71..77,
-                        85, 86 -> "❄"
-
-                        in 95..99 -> "⚡"
-
-                        else -> "°"
-                    }
+                val condition = when (code) {
+                    0 -> "☀"
+                    1, 2 -> "⛅"
+                    3 -> "☁"
+                    45, 48 -> "≋"
+                    in 51..67, in 80..82 -> "☂"
+                    in 71..77, 85, 86 -> "❄"
+                    in 95..99 -> "⚡"
+                    else -> "°"
+                }
 
                 runOnUiThread {
                     weatherLine =
-                        "$city · " +
-                            "$condition " +
+                        "$city · $condition " +
                             "$temperature°C"
 
                     updateClock()
@@ -2283,21 +1938,16 @@ class MainActivity : Activity() {
 
                 runOnUiThread {
                     weatherLine =
-                        "$city · météo " +
-                            "indisponible"
-
+                        "$city · météo indisponible"
                     updateClock()
                 }
             }
         }
     }
 
-    private fun getJson(
-        address: String
-    ): JSONObject {
+    private fun getJson(address: String): JSONObject {
         val connection =
-            URL(address)
-                .openConnection()
+            URL(address).openConnection()
                 as HttpURLConnection
 
         connection.connectTimeout = 8000
@@ -2306,8 +1956,7 @@ class MainActivity : Activity() {
 
         try {
             if (
-                connection.responseCode
-                !in 200..299
+                connection.responseCode !in 200..299
             ) {
                 throw IllegalStateException(
                     "Réponse HTTP " +
@@ -2318,9 +1967,7 @@ class MainActivity : Activity() {
             val text =
                 connection.inputStream
                     .bufferedReader()
-                    .use {
-                        it.readText()
-                    }
+                    .use { it.readText() }
 
             return JSONObject(text)
 
@@ -2330,18 +1977,14 @@ class MainActivity : Activity() {
     }
 
     private fun updateClock() {
-        if (
-            !::clockWeather
-                .isInitialized
-        ) {
+        if (!::clockWeather.isInitialized) {
             return
         }
 
-        val time =
-            SimpleDateFormat(
-                "HH:mm",
-                Locale.FRANCE
-            ).format(Date())
+        val time = SimpleDateFormat(
+            "HH:mm",
+            Locale.FRANCE
+        ).format(Date())
 
         clockWeather.text =
             "$time\n$weatherLine"
@@ -2353,15 +1996,13 @@ class MainActivity : Activity() {
                 Intent.ACTION_OPEN_DOCUMENT
             ).apply {
                 addCategory(
-                    Intent
-                        .CATEGORY_OPENABLE
+                    Intent.CATEGORY_OPENABLE
                 )
 
                 type = "image/*"
 
                 putExtra(
-                    Intent
-                        .EXTRA_MIME_TYPES,
+                    Intent.EXTRA_MIME_TYPES,
                     arrayOf(
                         "image/png",
                         "image/jpeg"
@@ -2369,8 +2010,7 @@ class MainActivity : Activity() {
                 )
 
                 addFlags(
-                    Intent
-                        .FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
                         Intent
                             .FLAG_GRANT_PERSISTABLE_URI_PERMISSION
                 )
@@ -2386,30 +2026,22 @@ class MainActivity : Activity() {
         } catch (_: Exception) {
             AlertDialog.Builder(this)
                 .setTitle(
-                    "Sélection de fichier " +
-                        "indisponible"
+                    "Sélection de fichier indisponible"
                 )
                 .setMessage(
-                    "Ce lecteur TV ne propose " +
-                        "pas de sélecteur de " +
-                        "fichiers. Tu peux ajouter " +
-                        "logo_personnalise.png " +
-                        "dans " +
-                        "app/src/main/res/drawable/ " +
-                        "sur GitHub, puis " +
-                        "recompiler l'APK."
+                    "Ce lecteur TV ne propose pas de " +
+                        "sélecteur de fichiers. Tu peux " +
+                        "ajouter logo_personnalise.png " +
+                        "dans app/src/main/res/drawable/ " +
+                        "sur GitHub, puis recompiler l'APK."
                 )
-                .setPositiveButton(
-                    "OK",
-                    null
-                )
+                .setPositiveButton("OK", null)
                 .show()
         }
     }
 
     @Deprecated(
-        "Utilisé ici sans bibliothèque " +
-            "supplémentaire"
+        "Utilisé ici sans bibliothèque supplémentaire"
     )
     override fun onActivityResult(
         requestCode: Int,
@@ -2423,10 +2055,8 @@ class MainActivity : Activity() {
         )
 
         if (
-            requestCode !=
-            REQUEST_LOGO ||
-            resultCode !=
-            RESULT_OK ||
+            requestCode != REQUEST_LOGO ||
+            resultCode != RESULT_OK ||
             data?.data == null
         ) {
             return
@@ -2439,8 +2069,7 @@ class MainActivity : Activity() {
             contentResolver
                 .takePersistableUriPermission(
                     selected,
-                    Intent
-                        .FLAG_GRANT_READ_URI_PERMISSION
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
         } catch (_: SecurityException) {
             // L'image peut rester accessible
@@ -2480,21 +2109,18 @@ class MainActivity : Activity() {
                     Uri.parse(stored)
 
                 val options =
-                    BitmapFactory.Options()
-                        .apply {
-                            inJustDecodeBounds =
-                                true
-                        }
+                    BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                    }
 
                 contentResolver
                     .openInputStream(uri)
                     ?.use {
-                        BitmapFactory
-                            .decodeStream(
-                                it,
-                                null,
-                                options
-                            )
+                        BitmapFactory.decodeStream(
+                            it,
+                            null,
+                            options
+                        )
                     }
 
                 if (
@@ -2509,54 +2135,37 @@ class MainActivity : Activity() {
                 var sample = 1
 
                 while (
-                    options.outWidth /
-                    sample > 512 ||
-                    options.outHeight /
-                    sample > 512
+                    options.outWidth / sample > 512 ||
+                    options.outHeight / sample > 512
                 ) {
                     sample *= 2
                 }
 
-                options.inJustDecodeBounds =
-                    false
-
-                options.inSampleSize =
-                    sample
+                options.inJustDecodeBounds = false
+                options.inSampleSize = sample
 
                 val bitmap =
                     contentResolver
-                        .openInputStream(
-                            uri
-                        )
+                        .openInputStream(uri)
                         ?.use {
-                            BitmapFactory
-                                .decodeStream(
-                                    it,
-                                    null,
-                                    options
-                                )
-                        }
-                        ?: throw IllegalArgumentException(
-                            "Image illisible"
-                        )
+                            BitmapFactory.decodeStream(
+                                it,
+                                null,
+                                options
+                            )
+                        } ?: throw IllegalArgumentException(
+                        "Image illisible"
+                    )
 
-                image.setImageBitmap(
-                    bitmap
-                )
-
-                image.visibility =
-                    View.VISIBLE
-
-                placeholder.visibility =
-                    View.GONE
+                image.setImageBitmap(bitmap)
+                image.visibility = View.VISIBLE
+                placeholder.visibility = View.GONE
 
                 return
 
             } catch (_: Exception) {
                 preferences.edit()
-                    .remove(
-                        "logo_uri"
-                    )
+                    .remove("logo_uri")
                     .apply()
             }
         }
@@ -2569,39 +2178,21 @@ class MainActivity : Activity() {
             )
 
         if (bundledLogo != 0) {
-            image.setImageResource(
-                bundledLogo
-            )
-
-            image.visibility =
-                View.VISIBLE
-
-            placeholder.visibility =
-                View.GONE
-
+            image.setImageResource(bundledLogo)
+            image.visibility = View.VISIBLE
+            placeholder.visibility = View.GONE
         } else {
-            image.visibility =
-                View.GONE
-
-            placeholder.visibility =
-                View.VISIBLE
+            image.visibility = View.GONE
+            placeholder.visibility = View.VISIBLE
         }
     }
 
-    private fun sectionTitle(
-        title: String
-    ) {
+    private fun sectionTitle(title: String) {
         page.addView(
-            label(
-                title,
-                22f,
-                true
-            ),
+            label(title, 22f, true),
             LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams
-                    .MATCH_PARENT,
-                ViewGroup.LayoutParams
-                    .WRAP_CONTENT
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
                 topMargin = dp(20)
                 bottomMargin = dp(9)
@@ -2609,24 +2200,14 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun paragraph(
-        text: String
-    ) {
+    private fun paragraph(text: String) {
         page.addView(
-            label(
-                text,
-                15f,
-                false
-            ).apply {
-                setTextColor(
-                    0xFFCFD7E2.toInt()
-                )
+            label(text, 15f, false).apply {
+                setTextColor(0xFFCFD7E2.toInt())
             },
             LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams
-                    .MATCH_PARENT,
-                ViewGroup.LayoutParams
-                    .WRAP_CONTENT
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
                 topMargin = dp(5)
                 bottomMargin = dp(8)
@@ -2642,16 +2223,12 @@ class MainActivity : Activity() {
         return TextView(this).apply {
             text = value
             textSize = size
-
-            setTextColor(
-                Color.WHITE
-            )
+            setTextColor(Color.WHITE)
 
             if (bold) {
                 setTypeface(
                     null,
-                    android.graphics
-                        .Typeface.BOLD
+                    android.graphics.Typeface.BOLD
                 )
             }
         }
@@ -2663,41 +2240,27 @@ class MainActivity : Activity() {
         action: () -> Unit
     ): TextView {
         return TextView(this).apply {
-            id =
-                View.generateViewId()
-
+            id = View.generateViewId()
             text = title
             textSize = 16f
-
-            setTextColor(
-                Color.WHITE
-            )
+            setTextColor(Color.WHITE)
 
             setTypeface(
                 null,
-                android.graphics
-                    .Typeface.BOLD
+                android.graphics.Typeface.BOLD
             )
 
-            gravity =
-                Gravity.CENTER
+            gravity = Gravity.CENTER
+            setPadding(dp(22), 0, dp(22), 0)
 
-            setPadding(
-                dp(22),
-                0,
-                dp(22),
-                0
+            background = focusBackground(
+                if (red) {
+                    0xFFE60012.toInt()
+                } else {
+                    0xFF25354E.toInt()
+                },
+                24
             )
-
-            background =
-                focusBackground(
-                    if (red) {
-                        0xFFE60012.toInt()
-                    } else {
-                        0xFF25354E.toInt()
-                    },
-                    24
-                )
 
             isFocusable = true
             isClickable = true
@@ -2714,14 +2277,9 @@ class MainActivity : Activity() {
         index: Int
     ): LinearLayout {
         return LinearLayout(this).apply {
-            id =
-                View.generateViewId()
-
-            orientation =
-                LinearLayout.VERTICAL
-
-            gravity =
-                Gravity.BOTTOM
+            id = View.generateViewId()
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.BOTTOM
 
             setPadding(
                 dp(15),
@@ -2730,29 +2288,18 @@ class MainActivity : Activity() {
                 dp(12)
             )
 
-            background =
-                cardBackground(index)
-
+            background = cardBackground(index)
             isFocusable = true
             isClickable = true
-
             contentDescription =
                 "$title. $subtitle"
 
-            setOnFocusChangeListener {
-                    view, focused ->
-                animateFocus(
-                    view,
-                    focused
-                )
+            setOnFocusChangeListener { view, focused ->
+                animateFocus(view, focused)
             }
 
             addView(
-                label(
-                    title,
-                    19f,
-                    true
-                )
+                label(title, 19f, true)
             )
 
             addView(
@@ -2769,71 +2316,45 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun horizontalRow():
-        LinearLayout {
-
+    private fun horizontalRow(): LinearLayout {
         val scroller =
-            HorizontalScrollView(this)
-                .apply {
-                    isFocusable = false
-
-                    isHorizontalScrollBarEnabled =
-                        false
-
-                    clipToPadding = false
-                }
-
-        val row =
-            LinearLayout(this).apply {
-                orientation =
-                    LinearLayout.HORIZONTAL
-
-                setPadding(
-                    0,
-                    dp(3),
-                    0,
-                    dp(4)
-                )
+            HorizontalScrollView(this).apply {
+                isFocusable = false
+                isHorizontalScrollBarEnabled = false
+                clipToPadding = false
             }
+
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(3), 0, dp(4))
+        }
 
         scroller.addView(
             row,
             FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams
-                    .WRAP_CONTENT,
-                ViewGroup.LayoutParams
-                    .WRAP_CONTENT
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
 
         page.addView(
             scroller,
             LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams
-                    .MATCH_PARENT,
-                ViewGroup.LayoutParams
-                    .WRAP_CONTENT
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
 
         return row
     }
 
-    private fun registerFirst(
-        view: View
-    ) {
-        if (
-            firstContentButton ==
-            null
-        ) {
-            firstContentButton =
-                view
+    private fun registerFirst(view: View) {
+        if (firstContentButton == null) {
+            firstContentButton = view
 
             view.nextFocusUpId =
                 tabs[currentPage]?.id
-                    ?: tabs.getValue(
-                        "Pour vous"
-                    ).id
+                    ?: tabs.getValue("Pour vous").id
         }
     }
 
@@ -2843,18 +2364,10 @@ class MainActivity : Activity() {
     ) {
         view.animate()
             .scaleX(
-                if (focused) {
-                    1.035f
-                } else {
-                    1f
-                }
+                if (focused) 1.035f else 1f
             )
             .scaleY(
-                if (focused) {
-                    1.035f
-                } else {
-                    1f
-                }
+                if (focused) 1.035f else 1f
             )
             .setDuration(120)
             .start()
@@ -2863,31 +2376,29 @@ class MainActivity : Activity() {
     private fun navigationBackground(
         selected: Boolean
     ): StateListDrawable {
-        return StateListDrawable()
-            .apply {
-                addState(
-                    intArrayOf(
-                        android.R.attr
-                            .state_focused
-                    ),
-                    rounded(
-                        0xFFE60012.toInt(),
-                        23
-                    )
+        return StateListDrawable().apply {
+            addState(
+                intArrayOf(
+                    android.R.attr.state_focused
+                ),
+                rounded(
+                    0xFFE60012.toInt(),
+                    23
                 )
+            )
 
-                addState(
-                    intArrayOf(),
-                    rounded(
-                        if (selected) {
-                            0xFFCDD0D5.toInt()
-                        } else {
-                            Color.TRANSPARENT
-                        },
-                        23
-                    )
+            addState(
+                intArrayOf(),
+                rounded(
+                    if (selected) {
+                        0xFFCDD0D5.toInt()
+                    } else {
+                        Color.TRANSPARENT
+                    },
+                    23
                 )
-            }
+            )
+        }
     }
 
     private fun focusBackground(
@@ -2905,65 +2416,56 @@ class MainActivity : Activity() {
                 )
             }
 
-        return StateListDrawable()
-            .apply {
-                addState(
-                    intArrayOf(
-                        android.R.attr
-                            .state_focused
-                    ),
-                    focused
-                )
+        return StateListDrawable().apply {
+            addState(
+                intArrayOf(
+                    android.R.attr.state_focused
+                ),
+                focused
+            )
 
-                addState(
-                    intArrayOf(),
-                    rounded(
-                        normalColor,
-                        radius
-                    )
+            addState(
+                intArrayOf(),
+                rounded(
+                    normalColor,
+                    radius
                 )
-            }
+            )
+        }
     }
 
     private fun cardBackground(
         index: Int
     ): StateListDrawable {
-        val palettes =
-            arrayOf(
-                intArrayOf(
-                    0xFF713850.toInt(),
-                    0xFF24223A.toInt()
-                ),
-                intArrayOf(
-                    0xFF255E7C.toInt(),
-                    0xFF18324D.toInt()
-                ),
-                intArrayOf(
-                    0xFF715638.toInt(),
-                    0xFF2A293C.toInt()
-                ),
-                intArrayOf(
-                    0xFF594982.toInt(),
-                    0xFF27253D.toInt()
-                ),
-                intArrayOf(
-                    0xFF286470.toInt(),
-                    0xFF1A333B.toInt()
-                )
+        val palettes = arrayOf(
+            intArrayOf(
+                0xFF713850.toInt(),
+                0xFF24223A.toInt()
+            ),
+            intArrayOf(
+                0xFF255E7C.toInt(),
+                0xFF18324D.toInt()
+            ),
+            intArrayOf(
+                0xFF715638.toInt(),
+                0xFF2A293C.toInt()
+            ),
+            intArrayOf(
+                0xFF594982.toInt(),
+                0xFF27253D.toInt()
+            ),
+            intArrayOf(
+                0xFF286470.toInt(),
+                0xFF1A333B.toInt()
             )
+        )
 
-        val normal =
-            GradientDrawable(
-                GradientDrawable
-                    .Orientation.TL_BR,
-                palettes[
-                    index %
-                    palettes.size
-                ]
-            ).apply {
-                cornerRadius =
-                    dp(13).toFloat()
-            }
+        val normal = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            palettes[index % palettes.size]
+        ).apply {
+            cornerRadius = dp(13).toFloat()
+        }
 
         val focused =
             rounded(
@@ -2976,50 +2478,39 @@ class MainActivity : Activity() {
                 )
             }
 
-        return StateListDrawable()
-            .apply {
-                addState(
-                    intArrayOf(
-                        android.R.attr
-                            .state_focused
-                    ),
-                    focused
-                )
+        return StateListDrawable().apply {
+            addState(
+                intArrayOf(
+                    android.R.attr.state_focused
+                ),
+                focused
+            )
 
-                addState(
-                    intArrayOf(),
-                    normal
-                )
-            }
+            addState(
+                intArrayOf(),
+                normal
+            )
+        }
     }
 
     private fun rounded(
         color: Int,
         radius: Int
     ): GradientDrawable {
-        return GradientDrawable()
-            .apply {
-                setColor(color)
-
-                cornerRadius =
-                    dp(radius).toFloat()
-            }
+        return GradientDrawable().apply {
+            setColor(color)
+            cornerRadius = dp(radius).toFloat()
+        }
     }
 
-    private fun dp(
-        value: Int
-    ): Int {
+    private fun dp(value: Int): Int {
         return (
             value *
-                resources
-                    .displayMetrics
-                    .density
+                resources.displayMetrics.density
             ).roundToInt()
     }
 
-    private fun message(
-        text: String
-    ) {
+    private fun message(text: String) {
         Toast.makeText(
             this,
             text,
@@ -3029,10 +2520,7 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_LOGO = 42
-
-        private const val REQUEST_TV_LISTINGS =
-            4001
-
+        private const val REQUEST_TV_LISTINGS = 4001
         private const val READ_TV_LISTINGS =
             "android.permission.READ_TV_LISTINGS"
     }
