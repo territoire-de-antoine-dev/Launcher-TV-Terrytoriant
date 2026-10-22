@@ -17,6 +17,7 @@
             <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
         </intent>
     </queries>
+    <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
 
     <application
         android:allowBackup="false"
