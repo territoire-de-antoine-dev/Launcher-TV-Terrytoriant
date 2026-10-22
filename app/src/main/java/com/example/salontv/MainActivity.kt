@@ -37,6 +37,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -92,6 +93,10 @@ class MainActivity : Activity() {
             "last_playback_position_millis"
         const val DURATION = "duration_millis"
         const val BROWSABLE = "browsable"
+        const val TYPE = "type"
+        const val GENRE = "canonical_genre"
+        const val DESCRIPTION = "short_description"
+        const val RELEASE = "release_date"
     }
 
     private data class ProgramCard(
@@ -102,7 +107,12 @@ class MainActivity : Activity() {
         val launchUri: String?,
         val positionMillis: Long,
         val durationMillis: Long,
-        val engagementMillis: Long
+        val engagementMillis: Long,
+        val type: Int? = null,
+        val genres: String = "",
+        val description: String = "",
+        val releaseYear: Int = 0,
+        val rowTitle: String = ""
     ) {
         val progressPercent: Int
             get() {
@@ -144,6 +154,9 @@ class MainActivity : Activity() {
     private var currentPage = "Pour vous"
     private var firstContentButton: View? = null
     private var lastRowButton: View? = null
+
+    // Chaque rangée de la page, pour relier le focus de la télécommande
+    private val focusRows = mutableListOf<List<View>>()
 
     private var weatherLine = "Choisir une ville"
     private var lastWeatherUpdate = 0L
@@ -230,10 +243,6 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
 
-        if (::page.isInitialized) {
-            renderPage(currentPage)
-        }
-
         handler.removeCallbacks(clockTask)
         handler.post(clockTask)
 
@@ -316,11 +325,85 @@ class MainActivity : Activity() {
         button.setOnClickListener { action() }
     }
 
-    private fun renderPage(name: String) {
+    private fun beginPage(name: String) {
         currentPage = name
         page.removeAllViews()
         firstContentButton = null
         lastRowButton = null
+        focusRows.clear()
+    }
+
+    private fun registerRow(views: List<View>) {
+        if (views.isNotEmpty()) {
+            focusRows.add(views)
+        }
+    }
+
+    /*
+     * Relie explicitement chaque rangée à celle du dessus et du
+     * dessous. Sans cela, certains boutons sautaient par-dessus les
+     * rangées de cartes (dont « Reprendre la lecture »).
+     */
+    private fun wireFocus() {
+        val rows = focusRows.filter { it.isNotEmpty() }
+
+        rows.forEachIndexed { r, views ->
+            views.forEachIndexed { c, view ->
+                if (r > 0) {
+                    val above = rows[r - 1]
+                    view.nextFocusUpId =
+                        above[minOf(c, above.size - 1)].id
+                }
+
+                if (r < rows.size - 1) {
+                    val below = rows[r + 1]
+                    view.nextFocusDownId =
+                        below[minOf(c, below.size - 1)].id
+                }
+            }
+        }
+
+        val tabId =
+            (tabs[currentPage] ?: tabs.getValue("Pour vous")).id
+
+        rows.firstOrNull()?.forEach {
+            it.nextFocusUpId = tabId
+        }
+    }
+
+    private fun finishPage() {
+        wireFocus()
+
+        val destination =
+            firstContentButton?.id ?: View.NO_ID
+
+        tabs.values.forEach {
+            it.nextFocusDownId = destination
+        }
+
+        findViewById<View>(
+            R.id.searchButton
+        ).nextFocusDownId = destination
+
+        findViewById<View>(
+            R.id.settingsButton
+        ).nextFocusDownId = destination
+
+        findViewById<View>(
+            R.id.sleepButton
+        ).nextFocusDownId = destination
+
+        clockWeather.nextFocusDownId = destination
+
+        findViewById<View>(
+            R.id.logoBox
+        ).nextFocusDownId = destination
+
+        pageScroll.scrollTo(0, 0)
+    }
+
+    private fun renderPage(name: String) {
+        beginPage(name)
 
         tabs.forEach { (tabName, tab) ->
             tab.background =
@@ -372,28 +455,7 @@ class MainActivity : Activity() {
             else -> renderHome()
         }
 
-        val destination =
-            firstContentButton?.id ?: View.NO_ID
-
-        tabs.values.forEach {
-            it.nextFocusDownId = destination
-        }
-
-        findViewById<View>(
-            R.id.searchButton
-        ).nextFocusDownId = destination
-
-        findViewById<View>(
-            R.id.settingsButton
-        ).nextFocusDownId = destination
-
-        clockWeather.nextFocusDownId = destination
-
-        findViewById<View>(
-            R.id.logoBox
-        ).nextFocusDownId = destination
-
-        pageScroll.scrollTo(0, 0)
+        finishPage()
     }
 
     private fun renderHome() {
@@ -452,6 +514,7 @@ class MainActivity : Activity() {
         )
 
         registerFirst(tvButton)
+        registerRow(listOf(tvButton))
         addRecommendationSections()
 
         sectionTitle("À la une")
@@ -465,7 +528,7 @@ class MainActivity : Activity() {
         )
 
         val categoryRow = horizontalRow()
-        var firstCategory: View? = null
+        val categoryViews = mutableListOf<View>()
 
         categories.forEachIndexed { index, pair ->
             val title = pair.first
@@ -476,8 +539,6 @@ class MainActivity : Activity() {
                 subtitle,
                 index
             ).apply {
-                nextFocusUpId = tvButton.id
-
                 setOnClickListener {
                     renderCategory(title)
                     firstContentButton?.requestFocus()
@@ -494,15 +555,10 @@ class MainActivity : Activity() {
                 }
             )
 
-            if (firstCategory == null) {
-                firstCategory = card
-            }
+            categoryViews.add(card)
         }
 
-        tvButton.nextFocusDownId =
-            firstCategory?.id ?: View.NO_ID
-
-        lastRowButton = firstCategory
+        registerRow(categoryViews)
 
         sectionTitle("Les services")
         addAppRow(
@@ -541,7 +597,7 @@ class MainActivity : Activity() {
         sectionTitle(title)
 
         val row = horizontalRow()
-        var firstInRow: View? = null
+        val rowViews = mutableListOf<View>()
 
         cards.forEach { card ->
             val tile = LinearLayout(this).apply {
@@ -559,10 +615,6 @@ class MainActivity : Activity() {
                 contentDescription =
                     "${card.title}. Ouvrir dans " +
                         card.ownerPackage
-
-                lastRowButton?.let {
-                    nextFocusUpId = it.id
-                }
 
                 setOnFocusChangeListener { view, focused ->
                     animateFocus(view, focused)
@@ -647,14 +699,11 @@ class MainActivity : Activity() {
                 card.artworkUri
             )
 
-            if (firstInRow == null) {
-                firstInRow = tile
-            }
-
+            rowViews.add(tile)
             registerFirst(tile)
         }
 
-        lastRowButton = firstInRow
+        registerRow(rowViews)
     }
 
     private fun launchPublishedProgram(
@@ -690,9 +739,32 @@ class MainActivity : Activity() {
             }
 
             intent.setPackage(card.ownerPackage)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
 
         } catch (_: Exception) {
+            // Le lien précis a échoué : on ouvre au moins
+            // l'application qui a publié la fiche.
+            val fallback =
+                packageManager.getLeanbackLaunchIntentForPackage(
+                    card.ownerPackage
+                ) ?: packageManager.getLaunchIntentForPackage(
+                    card.ownerPackage
+                )
+
+            if (fallback != null) {
+                try {
+                    startActivity(fallback)
+                    message(
+                        "Le lien direct a échoué : l'application " +
+                            "s'ouvre sur son accueil."
+                    )
+                    return
+                } catch (_: Exception) {
+                    // Message d'erreur ci-dessous.
+                }
+            }
+
             message(
                 "Impossible d'ouvrir ce contenu " +
                     "dans son application."
@@ -752,6 +824,12 @@ class MainActivity : Activity() {
                         return@runOnUiThread
                     }
 
+                    val previousStatus = recommendationsStatus
+
+                    val changed =
+                        continueWatching != watchNext ||
+                            recommendationRows != channels
+
                     continueWatching = watchNext
                     recommendationRows = channels
 
@@ -767,7 +845,14 @@ class MainActivity : Activity() {
                             "Recommandations actualisées."
                         }
 
-                    redrawHomeIfVisible()
+                    // On ne redessine que si les données ont changé,
+                    // pour ne pas faire perdre le focus à l'utilisateur.
+                    if (
+                        changed ||
+                        recommendationsStatus != previousStatus
+                    ) {
+                        redrawHomeIfVisible()
+                    }
                 }
 
             } catch (_: SecurityException) {
@@ -794,15 +879,66 @@ class MainActivity : Activity() {
         }
     }
 
+    private val categoryNames = listOf(
+        "À découvrir",
+        "Films et séries",
+        "Documentaires",
+        "Jeunesse",
+        "Nouveautés"
+    )
+
     private fun redrawHomeIfVisible() {
         if (
-            ::page.isInitialized &&
-            currentPage == "Pour vous" &&
-            !isFinishing &&
-            !isDestroyed
+            !::page.isInitialized ||
+            isFinishing ||
+            isDestroyed
         ) {
-            renderPage("Pour vous")
+            return
         }
+
+        val hadFocus = pageScroll.hasFocus()
+
+        when {
+            currentPage == "Pour vous" ->
+                renderPage("Pour vous")
+
+            currentPage in categoryNames ->
+                renderCategory(currentPage)
+
+            else -> return
+        }
+
+        if (hadFocus) {
+            firstContentButton?.requestFocus()
+        }
+    }
+
+    @Deprecated("Géré ici pour un launcher")
+    override fun onBackPressed() {
+        if (currentPage != "Pour vous") {
+            renderPage("Pour vous")
+            tabs["Pour vous"]?.requestFocus()
+            return
+        }
+
+        // Sur l'accueil par défaut, Retour ne doit pas fermer le launcher.
+        if (!isDefaultHome()) {
+            @Suppress("DEPRECATION")
+            super.onBackPressed()
+        }
+    }
+
+    private fun isDefaultHome(): Boolean {
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+        }
+
+        val info = packageManager.resolveActivity(
+            intent,
+            PackageManager.MATCH_DEFAULT_ONLY
+        )
+
+        return info?.activityInfo?.packageName == packageName
     }
 
     override fun onRequestPermissionsResult(
@@ -850,12 +986,9 @@ class MainActivity : Activity() {
 
         val result = mutableListOf<ProgramCard>()
 
-        contentResolver.query(
+        safeQuery(
             WatchNextCols.CONTENT_URI,
-            projection,
-            null,
-            null,
-            null
+            projection
         )?.use { cursor ->
             while (
                 cursor.moveToNext() &&
@@ -959,7 +1092,9 @@ class MainActivity : Activity() {
                     rows.add(
                         RecommendationRow(
                             channelName,
-                            programs
+                            programs.map {
+                                it.copy(rowTitle = channelName)
+                            }
                         )
                     )
                 }
@@ -994,12 +1129,9 @@ class MainActivity : Activity() {
 
         val result = mutableListOf<ProgramCard>()
 
-        contentResolver.query(
+        safeQuery(
             uri,
-            projection,
-            null,
-            null,
-            null
+            projection
         )?.use { cursor ->
             while (
                 cursor.moveToNext() &&
@@ -1026,6 +1158,41 @@ class MainActivity : Activity() {
         }
 
         return result
+    }
+
+    /*
+     * Interroge le fournisseur avec les colonnes de base plus les
+     * colonnes de genre/type/date. Si le fournisseur refuse ces
+     * colonnes supplémentaires, on retombe sur les colonnes de base.
+     */
+    private fun safeQuery(
+        uri: Uri,
+        basic: Array<String>
+    ): Cursor? {
+        val extra = arrayOf(
+            PreviewCols.TYPE,
+            PreviewCols.GENRE,
+            PreviewCols.DESCRIPTION,
+            PreviewCols.RELEASE
+        )
+
+        return try {
+            contentResolver.query(
+                uri,
+                basic + extra,
+                null,
+                null,
+                null
+            )
+        } catch (_: IllegalArgumentException) {
+            contentResolver.query(
+                uri,
+                basic,
+                null,
+                null,
+                null
+            )
+        }
     }
 
     private fun Cursor.readProgramCard(
@@ -1079,7 +1246,15 @@ class MainActivity : Activity() {
             engagementMillis =
                 engagementColumn?.let {
                     longValue(it)
-                } ?: 0L
+                } ?: 0L,
+            type = intValue(PreviewCols.TYPE),
+            genres = stringValue(PreviewCols.GENRE) ?: "",
+            description =
+                stringValue(PreviewCols.DESCRIPTION) ?: "",
+            releaseYear =
+                (stringValue(PreviewCols.RELEASE) ?: "")
+                    .take(4)
+                    .toIntOrNull() ?: 0
         )
     }
 
@@ -1242,66 +1417,185 @@ class MainActivity : Activity() {
     }
 
     private fun renderCategory(category: String) {
-        currentPage = category
-        page.removeAllViews()
-        firstContentButton = null
-        lastRowButton = null
+        beginPage(category)
 
         tabs.forEach { (name, tab) ->
             tab.background =
-                navigationBackground(
-                    name == "Pour vous"
-                )
+                navigationBackground(name == "Pour vous")
         }
 
         sectionTitle(category)
 
-        val description = when (category) {
+        val matching = categoryCards(category)
+
+        if (matching.isEmpty()) {
+            paragraph(
+                "Aucune fiche « $category » n'est publiée par " +
+                    "tes applications pour le moment. " +
+                    recommendationsStatus
+            )
+
+            val button = mainButton(
+                "Parcourir les applications",
+                false
+            ) {
+                renderPage("Applis")
+                tabs["Applis"]?.requestFocus()
+            }
+
+            page.addView(
+                button,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    dp(48)
+                ).apply {
+                    topMargin = dp(14)
+                }
+            )
+
+            registerFirst(button)
+            registerRow(listOf(button))
+        } else {
+            paragraph(categoryDescription(category))
+
+            val groups =
+                LinkedHashMap<String, MutableList<ProgramCard>>()
+
+            matching.forEach { card ->
+                val key = card.rowTitle.ifBlank {
+                    sourceLabel(card.ownerPackage)
+                }
+
+                groups.getOrPut(key) { mutableListOf() }.add(card)
+            }
+
+            groups.forEach { (title, cards) ->
+                addProgramRow(title, cards)
+            }
+        }
+
+        finishPage()
+    }
+
+    private fun categoryDescription(category: String): String {
+        return when (category) {
             "Nouveautés" ->
-                "Consulte les programmes publiés dans " +
-                    "les recommandations Android TV ou " +
-                    "ouvre tes plateformes."
+                "Les fiches les plus récentes publiées par " +
+                    "tes applications."
 
             "À découvrir" ->
-                "Les applications TV disponibles " +
-                    "sur ta box."
+                "Les recommandations publiées par tes " +
+                    "applications, classées par chaîne."
 
             else ->
-                "Applications susceptibles de proposer " +
-                    "ce type de contenu. Leur catalogue " +
-                    "dépend de ton abonnement."
+                "Les fiches de tes applications classées " +
+                    "d'après leur genre."
         }
+    }
 
-        paragraph(description)
+    /*
+     * Les catégories ne contiennent que des fiches réellement publiées
+     * par les applications (type, genre, date). Rien n'est inventé.
+     */
+    private fun categoryCards(
+        category: String
+    ): List<ProgramCard> {
+        val seen = HashSet<String>()
 
-        val apps = tvApps()
+        val all = recommendationRows
+            .flatMap { it.cards }
+            .filter { seen.add(it.ownerPackage + "|" + it.title) }
 
-        val matching = apps.filter {
-            matchesCategory(it, category)
+        val year = Calendar.getInstance().get(Calendar.YEAR)
+
+        return when (category) {
+            "À découvrir" -> all
+
+            "Nouveautés" -> {
+                val recent = all.filter {
+                    it.releaseYear >= year - 1 ||
+                        textHas(
+                            it,
+                            listOf(
+                                "nouveau", "nouveauté",
+                                "nouveautés", "new", "récent",
+                                "derniers"
+                            )
+                        )
+                }
+
+                (if (recent.isNotEmpty()) recent else all)
+                    .sortedByDescending { it.releaseYear }
+            }
+
+            else -> all.filter { cardMatches(it, category) }
         }
+    }
 
-        if (matching.isNotEmpty()) {
-            addAppRow(
-                matching,
-                "Aucune application correspondante."
-            )
-        } else {
-            paragraph(
-                "Aucune application spécialisée " +
-                    "détectée. Voici les applications " +
-                    "disponibles :"
-            )
+    private fun textHas(
+        card: ProgramCard,
+        words: List<String>
+    ): Boolean {
+        val text = (
+            card.title + " " + card.rowTitle + " " +
+                card.description
+            ).lowercase(Locale.ROOT)
 
-            addAppRow(
-                apps,
-                "Aucune application TV détectée."
-            )
+        return words.any { text.contains(it) }
+    }
+
+    private fun cardMatches(
+        card: ProgramCard,
+        category: String
+    ): Boolean {
+        val genres = card.genres.uppercase(Locale.ROOT)
+        val type = card.type
+
+        return when (category) {
+            "Films et séries" ->
+                (type != null && type in 0..3) ||
+                    genres.contains("MOVIES") ||
+                    genres.contains("DRAMA") ||
+                    genres.contains("COMEDY") ||
+                    textHas(
+                        card,
+                        listOf("film", "série", "serie", "saison")
+                    )
+
+            "Documentaires" ->
+                genres.contains("EDUCATION") ||
+                    genres.contains("ANIMAL_NATURE") ||
+                    genres.contains("TECH_SCIENCE") ||
+                    genres.contains("TRAVEL") ||
+                    genres.contains("ARTS") ||
+                    textHas(
+                        card,
+                        listOf("documentaire", "docu", "reportage")
+                    )
+
+            "Jeunesse" ->
+                genres.contains("FAMILY_KIDS") ||
+                    textHas(
+                        card,
+                        listOf(
+                            "jeunesse", "kids", "enfant",
+                            "famille", "dessin"
+                        )
+                    )
+
+            else -> true
         }
+    }
 
-        firstContentButton?.nextFocusUpId =
-            tabs.getValue("Pour vous").id
-
-        pageScroll.scrollTo(0, 0)
+    @Suppress("DEPRECATION")
+    private fun sourceLabel(pkg: String): String {
+        return try {
+            packageManager.getApplicationLabel(
+                packageManager.getApplicationInfo(pkg, 0)
+            ).toString()
+        } catch (_: Exception) {
+            pkg
+        }
     }
 
     private fun renderFreeSection(
@@ -1483,7 +1777,7 @@ class MainActivity : Activity() {
         }
 
         val row = horizontalRow()
-        var firstInRow: View? = null
+        val rowViews = mutableListOf<View>()
 
         apps.forEachIndexed { index, app ->
             val card = LinearLayout(this).apply {
@@ -1507,10 +1801,6 @@ class MainActivity : Activity() {
 
                 contentDescription =
                     "Ouvrir ${appName(app)}"
-
-                lastRowButton?.let {
-                    nextFocusUpId = it.id
-                }
 
                 setOnFocusChangeListener { view, focused ->
                     animateFocus(view, focused)
@@ -1574,14 +1864,11 @@ class MainActivity : Activity() {
                 }
             )
 
-            if (firstInRow == null) {
-                firstInRow = card
-            }
-
+            rowViews.add(card)
             registerFirst(card)
         }
 
-        lastRowButton = firstInRow
+        registerRow(rowViews)
     }
 
     private fun openFreeApp(
@@ -1712,15 +1999,13 @@ class MainActivity : Activity() {
             .setView(input)
             .setPositiveButton("Chercher") { _, _ ->
                 renderPage("Applis")
-                page.removeAllViews()
-
-                firstContentButton = null
-                lastRowButton = null
+                beginPage("Applis")
 
                 renderApplications(
                     input.text.toString().trim()
                 )
 
+                finishPage()
                 firstContentButton?.requestFocus()
             }
             .setNegativeButton("Annuler", null)
