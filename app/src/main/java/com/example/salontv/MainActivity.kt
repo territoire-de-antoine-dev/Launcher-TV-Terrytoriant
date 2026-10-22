@@ -1262,7 +1262,7 @@ class MainActivity : Activity() {
 
         scroller.addView(
             row,
-            HorizontalScrollView.LayoutParams(
+            android.widget.FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
