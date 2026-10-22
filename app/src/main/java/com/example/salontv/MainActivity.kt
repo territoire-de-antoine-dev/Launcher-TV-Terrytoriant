@@ -1,3 +1,9 @@
+import android.content.pm.PackageManager
+import android.os.Build
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 package com.example.salontv
 import android.view.ViewGroup.LayoutParams
 import android.app.Activity
